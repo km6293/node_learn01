@@ -67,9 +67,17 @@ app.get("/list", (req, res) => {
   db.collection("post")
     .find()
     .toArray((err, result) => {
-      console.log(result);
       res.render("list.ejs", { posts: result });
     });
 
   // 접속하면 렌더링 해줌
+});
+
+app.delete("/delete", (req1, res1) => {
+  req1.body._id = parseInt(req1.body._id);
+  console.log(req1.body);
+  db.collection("post").deleteOne(req1.body, (err2, res2) => {
+    if (err2) return console.log(err2);
+    res1.status(200).send({ message: "성공하였습니다." });
+  });
 });
