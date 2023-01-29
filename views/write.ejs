@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+  <%- include('head.html')%>
+  <body>
+    <%- include('nav.html')%>
+
+    <!-- form -->
+    <div style="padding-left: 5%; padding-right: 5%">
+      <form action="/add" method="POST">
+        <br /><br />
+        <h4>할 일</h4>
+        <input type="text" class="form-control" name="title" /><br /><br />
+        <h4>Due Date</h4>
+        <input type="text" class="form-control" name="date" /><br /><br />
+        <button type="submit" class="btn btn-primary">Submit</button>
+      </form>
+    </div>
+
+    <%- include('script.html')%>
+  </body>
+</html>

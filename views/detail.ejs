@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+  <%- include('head.html')%>
+  <body>
+    <%- include('nav.html')%>
+
+    <div class="container mt-3">
+      <div class="card" style="width: 100%">
+        <div class="card-body">
+          <h5 class="card-title"><%= data.title %></h5>
+          <h6 class="card-subtitle mb-2 text-muted"><%= data.date %></h6>
+          <p class="card-text">임시내용입니다.</p>
+          <a href="edit" class="card-link">수정하기</a>
+        </div>
+      </div>
+    </div>
+
+    <%- include('script.html')%>
+  </body>
+</html>
