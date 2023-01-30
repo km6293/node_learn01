@@ -44,35 +44,6 @@ app.get("/write", (req, res) => {
   res.render("write.ejs", { data: res });
 });
 
-// post
-// req.body.name(작명) -> bodyParser 덕분에 name 으로 컨트롤 가능한듯
-app.post("/add", (req, res) => {
-  //쿼리문 같은 느낌 -> name = 게시물갯수 인 걸 찾아달라 느낌
-  db.collection("counter").findOne({ name: "게시물갯수" }, (err1, res1) => {
-    let resTotalPost = res1.totalPost + 1;
-
-    // 저장할 데이터, (에러, 결과)
-    db.collection("post").insertOne(
-      { _id: resTotalPost, title: req.body.title, date: req.body.date },
-      (err2, res2) => {
-        console.log("저장완료");
-
-        db.collection("counter").updateOne(
-          { name: "게시물갯수" },
-          { $inc: { totalPost: 1 } },
-          (err3, res3) => {
-            if (err3) return console.log(err3);
-          }
-        );
-      }
-    );
-  });
-
-  // res.send("응답완료");
-  console.log("작성완료");
-  res.redirect("/list");
-});
-
 app.get("/list", (req, res) => {
   db.collection("post")
     .find()
@@ -81,15 +52,6 @@ app.get("/list", (req, res) => {
     });
 
   // 접속하면 렌더링 해줌
-});
-
-app.delete("/delete", (req1, res1) => {
-  req1.body._id = parseInt(req1.body._id);
-  console.log(req1.body);
-  db.collection("post").deleteOne(req1.body, (err2, res2) => {
-    if (err2) return console.log(err2);
-    res1.status(200).send({ message: "성공하였습니다." });
-  });
 });
 
 app.get("/detail/:id", (req, res) => {
@@ -160,8 +122,20 @@ app.get("/mypage", chkLogin, (req, res) => {
 });
 
 app.get("/search", (req, res) => {
+  let searchCondition = [
+    {
+      $search: {
+        index: "titleSearch",
+        text: {
+          query: req.query.value,
+          path: "title", // 제목날짜 둘다 찾고 싶으면 ['제목', '날짜']
+        },
+      },
+    },
+    { $sort: { _id: 1 } },
+  ];
   db.collection("post")
-    .find({ title: req.query.value })
+    .aggregate()
     .toArray((err, result) => {
       res.render("list-filter.ejs", { posts: result });
     });
@@ -213,5 +187,54 @@ passport.serializeUser((user, done) => {
 passport.deserializeUser((id, done) => {
   db.collection("login").findOne({ id: id }, (err, result) => {
     done(null, result);
+  });
+});
+
+app.post("/register", (req, res) => {
+  db.collection("login").insertOne(
+    { id: req.body.id, pw: req.body.pw },
+    (err, result) => {
+      res.redirect("/");
+    }
+  );
+});
+
+// post
+// req.body.name(작명) -> bodyParser 덕분에 name 으로 컨트롤 가능한듯
+app.post("/add", (req, res) => {
+  //쿼리문 같은 느낌 -> name = 게시물갯수 인 걸 찾아달라 느낌
+  db.collection("counter").findOne({ name: "게시물갯수" }, (err1, res1) => {
+    let resTotalPost = res1.totalPost + 1;
+    let saveVal = {
+      _id: resTotalPost,
+      title: req.body.title,
+      date: req.body.date,
+      writer: req.user._id,
+    };
+    // 저장할 데이터, (에러, 결과)
+    db.collection("post").insertOne(saveVal, (err2, res2) => {
+      console.log("저장완료");
+
+      db.collection("counter").updateOne(
+        { name: "게시물갯수" },
+        { $inc: { totalPost: 1 } },
+        (err3, res3) => {
+          if (err3) return console.log(err3);
+        }
+      );
+    });
+  });
+
+  // res.send("응답완료");
+  console.log("작성완료");
+  res.redirect("/list");
+});
+
+app.delete("/delete", (req, res) => {
+  req.body._id = parseInt(req.body._id);
+  let deleteData = { _id: req.bodt_id, writer: req.user._id };
+  db.collection("post").deleteOne(deleteData, (err, result) => {
+    if (err) return console.log(err);
+    res.status(200).send({ message: "성공하였습니다." });
   });
 });
