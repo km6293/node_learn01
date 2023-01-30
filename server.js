@@ -68,7 +68,9 @@ app.post("/add", (req, res) => {
     );
   });
 
-  res.send("응답완료");
+  // res.send("응답완료");
+  console.log("작성완료");
+  res.redirect("/list");
 });
 
 app.get("/list", (req, res) => {
@@ -119,4 +121,97 @@ app.put("/edit", (req, res) => {
       res.redirect("/list");
     }
   );
+});
+
+// session 방식 로그인 기능
+const passport = require("passport");
+const LocalStrategy = require("passport-local").Strategy;
+const session = require("express-session");
+
+// app.use(미들웨어)
+// 미들웨어 : 요청 - 응답 중간에 뭔가 실행되는 코드
+app.use(
+  session({ secret: "비밀코드", resave: true, saveUninitialized: false })
+);
+app.use(passport.initialize());
+app.use(passport.session());
+
+app.get("/login", (req, res) => {
+  res.render("login.ejs", {});
+});
+
+app.post(
+  "/login",
+  passport.authenticate("local", {
+    // 회원 인증 실패할 경우 fail 로 이동
+    failureRedirect: "/fail",
+  }),
+  (req, res) => {
+    res.redirect("/");
+  }
+);
+
+app.get("fail", (req, res) => {
+  res.render("/");
+});
+
+app.get("/mypage", chkLogin, (req, res) => {
+  res.render("mypage.ejs", { user: req.user });
+});
+
+app.get("/search", (req, res) => {
+  db.collection("post")
+    .find({ title: req.query.value })
+    .toArray((err, result) => {
+      res.render("list-filter.ejs", { posts: result });
+    });
+});
+
+function chkLogin(req, res, next) {
+  if (req.user) {
+    next();
+  } else {
+    res.redirect("/login");
+  }
+}
+
+// LocalStrategy 인증 방식
+passport.use(
+  new LocalStrategy(
+    {
+      usernameField: "id",
+      passwordField: "pw",
+      session: true,
+      passReqToCallback: false,
+    },
+    function (inputId, inputPw, done) {
+      // console.log(inputId, inputPw);
+      db.collection("login").findOne({ id: inputId }, function (err, result) {
+        // done(서버에러, 성공시 사용자DB데이터, 에러메세지)
+        if (err) return done(err);
+        if (!result)
+          return done(null, false, {
+            message: "존재하지않는 아이디 입니다.",
+          });
+        return inputPw == result.pw
+          ? done(null, result)
+          : done(null, false, {
+              message: "비밀번호를 다시 입력하여주세요.",
+            });
+      });
+    }
+  )
+);
+
+// 세션을 저장시키는 코드 (로그인 성공시 발동)
+// user 은 LocalStrategy 인증 방식의 result 값이 들어감
+passport.serializeUser((user, done) => {
+  done(null, user.id);
+});
+
+// 이 세션 데이터를 가진 사람을 DB에서 찾아주세요 (마이페이지 접속 시, 발동)
+passport.deserializeUser((id, done) => {
+  db.collection("login").findOne({ id: id }, (err, result) => {
+    done(null, result);
+  });
 });
