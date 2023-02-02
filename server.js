@@ -238,3 +238,6 @@ app.delete("/delete", (req, res) => {
     res.status(200).send({ message: "성공하였습니다." });
   });
 });
+
+// 특정경로일때만 미들웨어를 탐.
+app.use("/", require("./routes/shop.js"));
