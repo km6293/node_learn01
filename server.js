@@ -16,16 +16,16 @@ app.set("view engine", "ejs");
 // css 파일 넣을때..
 app.use("/public", express.static("public"));
 
+
 // env
 require("dotenv").config();
-
 var db;
 MongoClient.connect(process.env.DB_URL, (err, client) => {
   if (err) return console.log(err);
   db = client.db("todoapp");
 
   // 서버를 열 수 있음.
-  // (서버 띄울 포트번호, 띄운 후 실행할 코드)
+  // (서버 띄울 포트번호, 띄운 후 실행할 코드) 
   app.listen(process.env.PORT, () => {
     console.log("listening on port");
   });
