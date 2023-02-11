@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+  <%- include('head.html')%>
+  <body>
+    <%- include('nav.html')%>
+
+    <div class="container mt-3">
+      <h4 class="text-center mb-3">업로드페이지</h4>
+
+      <!-- // 서버로 폼 데이터 전송하는 방식 디폴트 : application/x-www-form-urlencoded-->
+      <!-- application/x-www-form-urlencoded -> 인코딩하지말고 그대로 보내주셈 크기 작음 -->
+      <form method="POST" action="/upload" enctype="multipart/form-data">
+        <input type="file" name = 'profile'>
+        <button type="submit">전송</button>
+      </form>
+    </div>
+
+    <%- include('script.html')%>
+  </body>
+</html>

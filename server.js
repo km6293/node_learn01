@@ -241,3 +241,33 @@ app.delete("/delete", (req, res) => {
 
 // 특정경로일때만 미들웨어를 탐.
 app.use("/", require("./routes/shop.js"));
+
+let multer = require('multer');
+// diskStorage 이미지를 어디다가 정의하는지
+// memoryStorage 렘에다가 저장 -> 휘발성 있는것
+var storage = multer.diskStorage({
+  destination : (req, file, cd) => {
+    // 폴더 안에 이미지 저장
+    cd(null, './public/image')
+  },
+  filename : (req, file, cd) => {
+    // 저장한 이미지의 파일명 설정하는 부분
+    cd(null, file.originalname)
+  }
+})
+
+var upload = multer({storage : storage})
+
+app.get('/upload', (req, res) => {
+  res.render('upload.ejs')
+})
+
+// multer 라이브러리-> 파일전송 쉽게 도와주는 라이브러리
+app.post('/upload', upload.single('profile'), (req, res) => {
+  res.send('응답완료');
+})
+
+// iamge/test.jpg -> 들어가짐
+app.get('/image/:imageName', (req,res) => {
+  res.sendFile(__dirname+'/public/image/' + req.params.imageName)
+})
